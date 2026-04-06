@@ -16,3 +16,5 @@ app.listen(PORT, async () => {
   await connect();
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
+
+//HAHAJHDJHJAHDAHIAHOGHAIJAF EU AMOOOO O JOAAAAAAAAAAAAOOOOOOOOOOOOOOO :D
