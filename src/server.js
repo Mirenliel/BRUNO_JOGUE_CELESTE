@@ -1,11 +1,13 @@
 import { connect } from './database/sqlConnection.js';
 import express, { json } from 'express';
+import authRouter from './routes/authRouter.js';
 import './.env';
 
 const PORT = process.env.PORT || 3000;
 const app = express();
 
 app.use(json());
+app.use('/auth', authRouter);
 // ...
 
 app.get("/", (req, res) => {

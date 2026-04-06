@@ -10,10 +10,12 @@ const sequelize = new Sequelize('projetointegrador', 'root', 'senai', {
 async function connect() {
     try {
         await sequelize.authenticate();
+        await sequelize.sync();
         console.log('conexão com o banco de dados estabelecida!');
     } catch (error) {
         console.error('erro ao conectar:', error);
     }
 }
+
 
 export { sequelize, connect };
