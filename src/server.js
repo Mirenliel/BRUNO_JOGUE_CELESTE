@@ -1,0 +1,18 @@
+import { connect } from './database/sqlConnection.js';
+import express, { json } from 'express';
+import './.env';
+
+const PORT = process.env.PORT || 3000;
+const app = express();
+
+app.use(json());
+// ...
+
+app.get("/", (req, res) => {
+  res.send('<h1> servidor node ativo :D <h1/>');
+});
+
+app.listen(PORT, async () => {
+  await connect();
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
