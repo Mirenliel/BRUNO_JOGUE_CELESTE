@@ -1,6 +1,7 @@
 import { connect } from "./database/sqlConnection.js";
 import express, { json } from "express";
 import authRouter from "./routes/authRouter.js";
+import habitRecordRouter from "./routes/habitRecordRouter.js";
 import "./models/HabitRecord.js";
 
 process.loadEnvFile?.();
@@ -10,6 +11,7 @@ const app = express();
 
 app.use(json());
 app.use("/auth", authRouter);
+app.use("/habit-records", habitRecordRouter);
 
 app.get("/", (req, res) => {
   res.send("<h1>Servidor Node ativo :D</h1>");
