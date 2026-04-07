@@ -1,6 +1,8 @@
 import { Sequelize } from "sequelize";
 
-    host: 'localhost',
+//esse ngc do env n parece ser nada tão mirabolante mas deve ajudar na segurança
+//aprendi em um video do youtube rs -Luiz
+
 const sequelize = new Sequelize(
   process.env.DB_NAME || "projetointegrador",
   process.env.DB_USER || "root",
