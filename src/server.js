@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import "./config/loadEnv.js";
 import express, { json } from "express";
 import cors from "cors";
