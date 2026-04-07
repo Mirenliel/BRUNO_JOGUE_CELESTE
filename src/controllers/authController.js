@@ -7,7 +7,7 @@ const SECRET = process.env.JWT_SECRET || "segredo";
 const authController = {
   register: async (req, res) => {
     try {
-      const { email, password, role } = req.body;
+      const { email, password } = req.body;
 
       const existingUser = await User.findOne({ where: { email } });
 
@@ -20,7 +20,7 @@ const authController = {
       const user = await User.create({
         email,
         password: hashedPassword,
-        role: role || "user",
+        role: "user",
       });
 
       return res.status(201).json({
