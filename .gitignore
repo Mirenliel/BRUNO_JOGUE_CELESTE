@@ -134,3 +134,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Temporary files generated while reading the project slides
+.tmp_pptx/
+.tmp_pptx.zip
