@@ -1,6 +1,7 @@
 import { connect } from "./database/sqlConnection.js";
 import express, { json } from "express";
 import authRouter from "./routes/authRouter.js";
+import "./models/HabitRecord.js";
 
 process.loadEnvFile?.();
 
