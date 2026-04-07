@@ -1,10 +1,19 @@
+import { existsSync } from "node:fs";
 import { connect } from "./database/sqlConnection.js";
 import express, { json } from "express";
 import authRouter from "./routes/authRouter.js";
 import habitRecordRouter from "./routes/habitRecordRouter.js";
 import "./models/HabitRecord.js";
 
-process.loadEnvFile?.();
+const envFilePath = existsSync(".env")
+  ? ".env"
+  : existsSync("src/.env")
+  ? "src/.env"
+  : null;
+
+if (envFilePath) {
+  process.loadEnvFile?.(envFilePath);
+}
 
 const PORT = process.env.PORT || 3000;
 const app = express();
