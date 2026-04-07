@@ -2,6 +2,7 @@ import express from "express";
 import { body, param } from "express-validator";
 import habitRecordController from "../controllers/habitRecordController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
+import roleMiddleware from "../middlewares/roleMiddleware.js";
 import validationMiddleware from "../middlewares/validationMiddleware.js";
 
 const habitRecordRouter = express.Router();
@@ -46,6 +47,12 @@ habitRecordRouter.post(
 habitRecordRouter.get("/", habitRecordController.list);
 
 habitRecordRouter.get(
+  "/admin/all",
+  roleMiddleware("admin"),
+  habitRecordController.adminList
+);
+
+habitRecordRouter.get(
   "/:id",
   idValidation,
   validationMiddleware,
@@ -65,6 +72,14 @@ habitRecordRouter.delete(
   idValidation,
   validationMiddleware,
   habitRecordController.delete
+);
+
+habitRecordRouter.delete(
+  "/admin/:id",
+  roleMiddleware("admin"),
+  idValidation,
+  validationMiddleware,
+  habitRecordController.adminDelete
 );
 
 export default habitRecordRouter;

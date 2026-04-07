@@ -74,3 +74,74 @@ test("list busca apenas os registros do usuario autenticado em ordem decrescente
   });
   assert.equal(res.body.length, 2);
 });
+
+test("adminList busca todos os registros com os dados basicos do usuario", async (t) => {
+  const originalFindAll = HabitRecord.findAll;
+  let receivedQuery;
+
+  HabitRecord.findAll = async (query) => {
+    receivedQuery = query;
+    return [{ id: 10 }];
+  };
+
+  t.after(() => {
+    HabitRecord.findAll = originalFindAll;
+  });
+
+  const req = createMockRequest({
+    user: {
+      id: 1,
+      role: "admin",
+    },
+  });
+  const res = createMockResponse();
+
+  await habitRecordController.adminList(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(receivedQuery, {
+    include: [
+      {
+        association: "user",
+        attributes: ["id", "email", "role"],
+      },
+    ],
+    order: [["date", "DESC"]],
+  });
+  assert.equal(res.body.length, 1);
+});
+
+test("adminDelete remove qualquer registro pelo id", async (t) => {
+  const originalFindByPk = HabitRecord.findByPk;
+  let destroyed = false;
+
+  HabitRecord.findByPk = async (id) => ({
+    id,
+    destroy: async () => {
+      destroyed = true;
+    },
+  });
+
+  t.after(() => {
+    HabitRecord.findByPk = originalFindByPk;
+  });
+
+  const req = createMockRequest({
+    params: {
+      id: "9",
+    },
+    user: {
+      id: 1,
+      role: "admin",
+    },
+  });
+  const res = createMockResponse();
+
+  await habitRecordController.adminDelete(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(destroyed, true);
+  assert.deepEqual(res.body, {
+    message: "Registro removido com sucesso",
+  });
+});

@@ -33,6 +33,24 @@ const habitRecordController = {
     }
   },
 
+  adminList: async (req, res) => {
+    try {
+      const records = await HabitRecord.findAll({
+        include: [
+          {
+            association: "user",
+            attributes: ["id", "email", "role"],
+          },
+        ],
+        order: [["date", "DESC"]],
+      });
+
+      return res.json(records);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
   getById: async (req, res) => {
     try {
       const habitRecord = await HabitRecord.findOne({
@@ -89,6 +107,22 @@ const habitRecordController = {
           userId: req.user.id,
         },
       });
+
+      if (!habitRecord) {
+        return res.status(404).json({ message: "Registro nao encontrado" });
+      }
+
+      await habitRecord.destroy();
+
+      return res.json({ message: "Registro removido com sucesso" });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  adminDelete: async (req, res) => {
+    try {
+      const habitRecord = await HabitRecord.findByPk(req.params.id);
 
       if (!habitRecord) {
         return res.status(404).json({ message: "Registro nao encontrado" });

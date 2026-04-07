@@ -4,6 +4,15 @@ import jwt from "jsonwebtoken";
 
 const SECRET = process.env.JWT_SECRET || "segredo";
 
+function resolveUserRole(email) {
+  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+
+  return adminEmails.includes(email.toLowerCase()) ? "admin" : "user";
+}
+
 const authController = {
   register: async (req, res) => {
     try {
@@ -16,11 +25,12 @@ const authController = {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
+      const role = resolveUserRole(email);
 
       const user = await User.create({
         email,
         password: hashedPassword,
-        role: "user",
+        role,
       });
 
       return res.status(201).json({

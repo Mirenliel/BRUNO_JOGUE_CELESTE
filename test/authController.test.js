@@ -55,6 +55,45 @@ test("register cria usuario com senha criptografada e resposta segura", async (t
   assert.equal(await bcrypt.compare("123456", createdPayload.password), true);
 });
 
+test("register atribui role admin quando o email estiver liberado no ambiente", async (t) => {
+  const originalFindOne = User.findOne;
+  const originalCreate = User.create;
+  const originalAdminEmails = process.env.ADMIN_EMAILS;
+
+  let createdPayload;
+
+  process.env.ADMIN_EMAILS = "admin@email.com";
+  User.findOne = async () => null;
+  User.create = async (payload) => {
+    createdPayload = payload;
+    return {
+      id: 2,
+      email: payload.email,
+      role: payload.role,
+    };
+  };
+
+  t.after(() => {
+    User.findOne = originalFindOne;
+    User.create = originalCreate;
+    process.env.ADMIN_EMAILS = originalAdminEmails;
+  });
+
+  const req = createMockRequest({
+    body: {
+      email: "admin@email.com",
+      password: "123456",
+    },
+  });
+  const res = createMockResponse();
+
+  await authController.register(req, res);
+
+  assert.equal(res.statusCode, 201);
+  assert.equal(createdPayload.role, "admin");
+  assert.equal(res.body.user.role, "admin");
+});
+
 test("login retorna token quando as credenciais sao validas", async (t) => {
   const originalFindOne = User.findOne;
   const hashedPassword = await bcrypt.hash("123456", 10);
