@@ -145,3 +145,131 @@ test("adminDelete remove qualquer registro pelo id", async (t) => {
     message: "Registro removido com sucesso",
   });
 });
+
+test("summary retorna indicadores do usuario e a media geral da plataforma", async (t) => {
+  const originalFindAll = HabitRecord.findAll;
+  const receivedQueries = [];
+
+  HabitRecord.findAll = async (query) => {
+    receivedQueries.push(query);
+
+    if (receivedQueries.length === 1) {
+      return [
+        {
+          date: "2026-04-07",
+          waterIntakeMl: 2000,
+          activityMinutes: 40,
+          mood: "bem",
+          userId: 3,
+        },
+        {
+          date: "2026-04-06",
+          waterIntakeMl: 1000,
+          activityMinutes: 20,
+          mood: "cansado",
+          userId: 3,
+        },
+      ];
+    }
+
+    return [
+      {
+        date: "2026-04-07",
+        waterIntakeMl: 2000,
+        activityMinutes: 40,
+        mood: "bem",
+        userId: 3,
+      },
+      {
+        date: "2026-04-06",
+        waterIntakeMl: 1000,
+        activityMinutes: 20,
+        mood: "cansado",
+        userId: 3,
+      },
+      {
+        date: "2026-04-05",
+        waterIntakeMl: 1500,
+        activityMinutes: 30,
+        mood: "bem",
+        userId: 8,
+      },
+    ];
+  };
+
+  t.after(() => {
+    HabitRecord.findAll = originalFindAll;
+  });
+
+  const req = createMockRequest({
+    user: {
+      id: 3,
+    },
+  });
+  const res = createMockResponse();
+
+  await habitRecordController.summary(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(receivedQueries, [
+    {
+      where: { userId: 3 },
+      order: [["date", "DESC"]],
+    },
+    {},
+  ]);
+  assert.deepEqual(res.body, {
+    user: {
+      totalRecords: 2,
+      averageWaterIntakeMl: 1500,
+      averageActivityMinutes: 30,
+      moodBreakdown: {
+        bem: 1,
+        cansado: 1,
+      },
+      latestRecordDate: "2026-04-07",
+    },
+    general: {
+      totalTrackedUsers: 2,
+      totalRecords: 3,
+      averageWaterIntakeMl: 1500,
+      averageActivityMinutes: 30,
+    },
+  });
+});
+
+test("summary retorna zeros quando ainda nao existem registros", async (t) => {
+  const originalFindAll = HabitRecord.findAll;
+
+  HabitRecord.findAll = async () => [];
+
+  t.after(() => {
+    HabitRecord.findAll = originalFindAll;
+  });
+
+  const req = createMockRequest({
+    user: {
+      id: 3,
+    },
+  });
+  const res = createMockResponse();
+
+  await habitRecordController.summary(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body, {
+    user: {
+      totalRecords: 0,
+      averageWaterIntakeMl: 0,
+      averageActivityMinutes: 0,
+      moodBreakdown: {},
+      latestRecordDate: null,
+    },
+    general: {
+      totalTrackedUsers: 0,
+      totalRecords: 0,
+      averageWaterIntakeMl: 0,
+      averageActivityMinutes: 0,
+    },
+  });
+});

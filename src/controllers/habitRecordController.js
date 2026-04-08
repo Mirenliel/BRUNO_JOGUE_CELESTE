@@ -1,5 +1,24 @@
 import HabitRecord from "../models/HabitRecord.js";
 
+function calculateAverage(records, field) {
+  if (records.length === 0) {
+    return 0;
+  }
+
+  const total = records.reduce((sum, record) => sum + (record[field] ?? 0), 0);
+
+  return Number((total / records.length).toFixed(2));
+}
+
+function buildMoodBreakdown(records) {
+  return records.reduce((accumulator, record) => {
+    const mood = record.mood || "nao informado";
+
+    accumulator[mood] = (accumulator[mood] ?? 0) + 1;
+    return accumulator;
+  }, {});
+}
+
 const habitRecordController = {
   create: async (req, res) => {
     try {
@@ -46,6 +65,42 @@ const habitRecordController = {
       });
 
       return res.json(records);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  summary: async (req, res) => {
+    try {
+      const [userRecords, allRecords] = await Promise.all([
+        HabitRecord.findAll({
+          where: { userId: req.user.id },
+          order: [["date", "DESC"]],
+        }),
+        HabitRecord.findAll({}),
+      ]);
+
+      const totalTrackedUsers = new Set(
+        allRecords
+          .map((record) => record.userId)
+          .filter((userId) => userId !== undefined && userId !== null)
+      ).size;
+
+      return res.json({
+        user: {
+          totalRecords: userRecords.length,
+          averageWaterIntakeMl: calculateAverage(userRecords, "waterIntakeMl"),
+          averageActivityMinutes: calculateAverage(userRecords, "activityMinutes"),
+          moodBreakdown: buildMoodBreakdown(userRecords),
+          latestRecordDate: userRecords[0]?.date ?? null,
+        },
+        general: {
+          totalTrackedUsers,
+          totalRecords: allRecords.length,
+          averageWaterIntakeMl: calculateAverage(allRecords, "waterIntakeMl"),
+          averageActivityMinutes: calculateAverage(allRecords, "activityMinutes"),
+        },
+      });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }

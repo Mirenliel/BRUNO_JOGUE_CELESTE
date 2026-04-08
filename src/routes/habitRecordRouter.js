@@ -46,6 +46,8 @@ habitRecordRouter.post(
 
 habitRecordRouter.get("/", habitRecordController.list);
 
+habitRecordRouter.get("/stats/summary", habitRecordController.summary);
+
 habitRecordRouter.get(
   "/admin/all",
   roleMiddleware("admin"),

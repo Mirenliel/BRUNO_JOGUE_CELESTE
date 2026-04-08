@@ -6,6 +6,7 @@ import corsOptions from "./config/cors.js";
 import { connect } from "./database/sqlConnection.js";
 import authRouter from "./routes/authRouter.js";
 import habitRecordRouter from "./routes/habitRecordRouter.js";
+import userRouter from "./routes/userRouter.js";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 import notFoundMiddleware from "./middlewares/notFoundMiddleware.js";
 import "./models/HabitRecord.js";
@@ -17,6 +18,7 @@ app.use(cors(corsOptions));
 app.use(json());
 app.use("/auth", authRouter);
 app.use("/habit-records", habitRecordRouter);
+app.use("/users", userRouter);
 
 app.get("/", (req, res) => {
   res.send("<h1>Servidor Node ativo :D</h1>");
