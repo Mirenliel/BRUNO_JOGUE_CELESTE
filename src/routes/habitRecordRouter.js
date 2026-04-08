@@ -47,6 +47,7 @@ habitRecordRouter.post(
 habitRecordRouter.get("/", habitRecordController.list);
 
 habitRecordRouter.get("/stats/summary", habitRecordController.summary);
+habitRecordRouter.get("/stats/progress", habitRecordController.progress);
 
 habitRecordRouter.get(
   "/admin/all",

@@ -273,3 +273,145 @@ test("summary retorna zeros quando ainda nao existem registros", async (t) => {
     },
   });
 });
+
+test("progress retorna historico com deltas e tendencia de melhora", async (t) => {
+  const originalFindAll = HabitRecord.findAll;
+  let receivedQuery;
+
+  HabitRecord.findAll = async (query) => {
+    receivedQuery = query;
+    return [
+      {
+        date: "2026-04-05",
+        waterIntakeMl: 1000,
+        activityMinutes: 20,
+        mood: "cansado",
+        notes: "Comecando",
+      },
+      {
+        date: "2026-04-06",
+        waterIntakeMl: 1500,
+        activityMinutes: 25,
+        mood: "normal",
+        notes: "Melhorando",
+      },
+      {
+        date: "2026-04-07",
+        waterIntakeMl: 2000,
+        activityMinutes: 40,
+        mood: "bem",
+        notes: "Bom dia",
+      },
+    ];
+  };
+
+  t.after(() => {
+    HabitRecord.findAll = originalFindAll;
+  });
+
+  const req = createMockRequest({
+    user: {
+      id: 3,
+    },
+  });
+  const res = createMockResponse();
+
+  await habitRecordController.progress(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(receivedQuery, {
+    where: { userId: 3 },
+    order: [["date", "ASC"]],
+  });
+  assert.deepEqual(res.body, {
+    totalRecords: 3,
+    trend: {
+      waterIntakeMl: "improving",
+      activityMinutes: "improving",
+    },
+    history: [
+      {
+        date: "2026-04-05",
+        waterIntakeMl: 1000,
+        activityMinutes: 20,
+        mood: "cansado",
+        notes: "Comecando",
+        changes: {
+          waterIntakeMl: null,
+          activityMinutes: null,
+        },
+      },
+      {
+        date: "2026-04-06",
+        waterIntakeMl: 1500,
+        activityMinutes: 25,
+        mood: "normal",
+        notes: "Melhorando",
+        changes: {
+          waterIntakeMl: 500,
+          activityMinutes: 5,
+        },
+      },
+      {
+        date: "2026-04-07",
+        waterIntakeMl: 2000,
+        activityMinutes: 40,
+        mood: "bem",
+        notes: "Bom dia",
+        changes: {
+          waterIntakeMl: 500,
+          activityMinutes: 15,
+        },
+      },
+    ],
+  });
+});
+
+test("progress retorna tendencia insuficiente quando ha menos de dois registros", async (t) => {
+  const originalFindAll = HabitRecord.findAll;
+
+  HabitRecord.findAll = async () => [
+    {
+      date: "2026-04-07",
+      waterIntakeMl: 1000,
+      activityMinutes: 20,
+      mood: "normal",
+      notes: null,
+    },
+  ];
+
+  t.after(() => {
+    HabitRecord.findAll = originalFindAll;
+  });
+
+  const req = createMockRequest({
+    user: {
+      id: 3,
+    },
+  });
+  const res = createMockResponse();
+
+  await habitRecordController.progress(req, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.body, {
+    totalRecords: 1,
+    trend: {
+      waterIntakeMl: "insufficient_data",
+      activityMinutes: "insufficient_data",
+    },
+    history: [
+      {
+        date: "2026-04-07",
+        waterIntakeMl: 1000,
+        activityMinutes: 20,
+        mood: "normal",
+        notes: null,
+        changes: {
+          waterIntakeMl: null,
+          activityMinutes: null,
+        },
+      },
+    ],
+  });
+});

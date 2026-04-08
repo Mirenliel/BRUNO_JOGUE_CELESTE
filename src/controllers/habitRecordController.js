@@ -19,6 +19,18 @@ function buildMoodBreakdown(records) {
   }, {});
 }
 
+function buildTrendLabel(currentValue, previousValue) {
+  if (currentValue > previousValue) {
+    return "improving";
+  }
+
+  if (currentValue < previousValue) {
+    return "declining";
+  }
+
+  return "stable";
+}
+
 const habitRecordController = {
   create: async (req, res) => {
     try {
@@ -100,6 +112,66 @@ const habitRecordController = {
           averageWaterIntakeMl: calculateAverage(allRecords, "waterIntakeMl"),
           averageActivityMinutes: calculateAverage(allRecords, "activityMinutes"),
         },
+      });
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  progress: async (req, res) => {
+    try {
+      const records = await HabitRecord.findAll({
+        where: { userId: req.user.id },
+        order: [["date", "ASC"]],
+      });
+
+      const history = records.map((record, index) => {
+        const previousRecord = records[index - 1];
+
+        return {
+          date: record.date,
+          waterIntakeMl: record.waterIntakeMl,
+          activityMinutes: record.activityMinutes,
+          mood: record.mood,
+          notes: record.notes,
+          changes: {
+            waterIntakeMl: previousRecord
+              ? record.waterIntakeMl - previousRecord.waterIntakeMl
+              : null,
+            activityMinutes: previousRecord
+              ? record.activityMinutes - previousRecord.activityMinutes
+              : null,
+          },
+        };
+      });
+
+      if (records.length < 2) {
+        return res.json({
+          totalRecords: records.length,
+          trend: {
+            waterIntakeMl: "insufficient_data",
+            activityMinutes: "insufficient_data",
+          },
+          history,
+        });
+      }
+
+      const previousRecord = records[records.length - 2];
+      const latestRecord = records[records.length - 1];
+
+      return res.json({
+        totalRecords: records.length,
+        trend: {
+          waterIntakeMl: buildTrendLabel(
+            latestRecord.waterIntakeMl,
+            previousRecord.waterIntakeMl
+          ),
+          activityMinutes: buildTrendLabel(
+            latestRecord.activityMinutes,
+            previousRecord.activityMinutes
+          ),
+        },
+        history,
       });
     } catch (error) {
       return res.status(500).json({ error: error.message });
