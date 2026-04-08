@@ -148,3 +148,6 @@ Para executar:
 ```bash
 npm test
 ```
+
+
+joao fez quase tudo ok
