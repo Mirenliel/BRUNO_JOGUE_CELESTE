@@ -1,6 +1,6 @@
 API Node.js para autenticacao, controle de usuarios e acompanhamento diario de habitos saudaveis.
 
-O projeto foi pensado para registrar habitos como ingestao de agua, atividade fisica, humor e observacoes diarias, permitindo acompanhar evolucao individual e medias gerais.
+O projeto foi pensado para registrar habitos como ingestao de agua, atividade fisica, humor e observacoes diarias, permitindo acompanhar evolucao individual e medias gerais. uwu
 
 Coisas utilizadas
 - Node.js
