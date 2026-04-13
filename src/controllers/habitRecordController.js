@@ -1,4 +1,5 @@
 import HabitRecord from "../models/HabitRecord.js";
+import User from "../models/User.js";
 
 const habitRecordController = {
   create: async (req, res) => {
@@ -25,6 +26,28 @@ const habitRecordController = {
       const records = await HabitRecord.findAll({
         where: { userId: req.user.id },
         order: [["date", "DESC"]],
+      });
+
+      return res.json(records);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  },
+
+  listAll: async (req, res) => {
+    try {
+      const records = await HabitRecord.findAll({
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["id", "email", "role"],
+          },
+        ],
+        order: [
+          ["date", "DESC"],
+          ["id", "DESC"],
+        ],
       });
 
       return res.json(records);

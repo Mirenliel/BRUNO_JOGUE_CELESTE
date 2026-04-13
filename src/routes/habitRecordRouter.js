@@ -2,6 +2,7 @@ import express from "express";
 import { body, param } from "express-validator";
 import habitRecordController from "../controllers/habitRecordController.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
+import roleMiddleware from "../middlewares/roleMiddleware.js";
 import validationMiddleware from "../middlewares/validationMiddleware.js";
 
 const habitRecordRouter = express.Router();
@@ -35,6 +36,12 @@ const habitRecordValidation = [
 ];
 
 habitRecordRouter.use(authMiddleware);
+
+habitRecordRouter.get(
+  "/admin/all",
+  roleMiddleware("admin"),
+  habitRecordController.listAll
+);
 
 habitRecordRouter.post(
   "/",
