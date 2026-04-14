@@ -6,6 +6,7 @@ import { connect } from "./database/sqlConnection.js";
 import authRouter from "./routes/authRouter.js";
 import habitRecordRouter from "./routes/habitRecordRouter.js";
 import userRouter from "./routes/userRouter.js";
+import ensureDefaultAdmin from "./bootstrap/ensureDefaultAdmin.js";
 import errorMiddleware from "./middlewares/errorMiddleware.js";
 import notFoundMiddleware from "./middlewares/notFoundMiddleware.js";
 import "./models/HabitRecord.js";
@@ -29,6 +30,7 @@ app.use(errorMiddleware);
 async function startServer() {
   try {
     await connect();
+    await ensureDefaultAdmin();
 
     app.listen(PORT, () => {
       console.log(`Servidor rodando em http://localhost:${PORT}`);

@@ -1,8 +1,11 @@
-API Node.js para autenticacao, controle de usuarios e acompanhamento diario de habitos saudaveis.
+# README - Back-end
 
-O projeto foi pensado para registrar habitos como ingestao de agua, atividade fisica, humor e observacoes diarias, permitindo acompanhar evolucao individual e medias gerais. uwu
+Repositório do front: `https://github.com/Danilloxkl/Front_end_do_BRUNO_JOGUE_CELESTE`
 
-Coisas utilizadas
+API em Node.js para autenticação, gestão de usuários e registro de hábitos diários. O projeto usa Express, Sequelize e MySQL, com autenticação por JWT.
+
+## Tecnologias
+
 - Node.js
 - Express
 - Sequelize
@@ -11,143 +14,151 @@ Coisas utilizadas
 - bcrypt
 - express-validator
 
-Checklist de coisas que a gente fez pouco a pouco
-- cadastro e login com JWT
-- senha com hash via bcrypt
-- protecao de rotas com middleware de autenticacao
-- autorizacao por roles `admin` e `user`
-- CRUD de registros de habitos
-- CRUD administrativo de usuarios
-- resumo estatistico dos habitos
-- endpoint de evolucao dos habitos
-- validacao de dados de entrada
-- CORS configurado para integracao com front-end
+## Requisitos
 
-## Estrutura do projeto
+- Node.js 20 ou superior
+- MySQL rodando localmente ou em outro host acessível
+- npm
 
-src/
-  config/
-  controllers/
-  database/
-  middlewares/
-  models/
-  routes/
-test/
-testSupport/
+## Como rodar
 
-## Variaveis de ambiente
+1. Entre na pasta do projeto:
 
-Copie `.env.example` para `.env` e ajuste os valores:
+```bash
+cd BRUNO_JOGUE_CELESTE
+```
+
+2. Instale as dependências:
+
+```bash
+npm install
+```
+
+3. Crie o arquivo `.env` na raiz do projeto.
+
+Você pode usar o `.env.example` como base, mas este projeto também precisa das variáveis de banco abaixo:
 
 ```env
 PORT=3000
 CORS_ORIGIN=http://localhost:5173
+JWT_SECRET=troque-para-um-segredo-forte
 ADMIN_EMAILS=admin@exemplo.com
+
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=projetointegrador
 DB_USER=root
-DB_PASSWORD=
-JWT_SECRET=troque-este-segredo
+DB_PASSWORD=sua_senha
 ```
 
-## Como rodar
+4. Garanta que o banco `DB_NAME` já exista no MySQL.
 
-1. Instale as dependencias com `npm install`.
-2. Garanta que o MySQL esteja rodando.
-3. Crie o arquivo `.env` com base em `.env.example`.
-4. Configure o banco nas variaveis de ambiente.
-5. Rode `npm run dev` para desenvolvimento ou `npm start` para execucao normal.
+Observação: o Sequelize cria/sincroniza as tabelas automaticamente ao subir a aplicação, mas não cria o banco de dados em si.
 
-O Sequelize sincroniza os modelos automaticamente ao iniciar a aplicacao.
+5. Inicie o servidor:
 
-## Scripts
+```bash
+npm run dev
+```
 
-- `npm run dev`: inicia o servidor em modo watch
-- `npm start`: inicia o servidor normalmente
-- `npm test`: executa os testes automatizados
+Para rodar sem watch:
 
-## Rotas principais
+```bash
+npm start
+```
 
-### Autenticacao
+Se tudo estiver certo, a API sobe em `http://localhost:3000`.
+
+## Dotenv
+
+Este projeto usa `process.loadEnvFile()` do Node para carregar o `.env`.
+
+- O arquivo principal deve ficar em `BRUNO_JOGUE_CELESTE/.env`
+- Existe fallback para `src/.env`, mas o recomendado é manter na raiz
+- O `.env` já está ignorado pelo `.gitignore`
+
+### O que cada variável faz
+
+- `PORT`: porta do servidor
+- `CORS_ORIGIN`: origem permitida do front. Pode receber mais de uma URL separada por vírgula
+- `JWT_SECRET`: chave usada para assinar os tokens
+- `ADMIN_EMAILS`: emails que devem nascer com papel `admin` no cadastro
+- `DB_HOST`: host do MySQL
+- `DB_PORT`: porta do MySQL
+- `DB_NAME`: nome do banco
+- `DB_USER`: usuário do banco
+- `DB_PASSWORD`: senha do banco
+
+Exemplo com mais de uma origem no CORS:
+
+```env
+CORS_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
+```
+
+## Integração com o front-end
+
+O front atual consome principalmente estas rotas:
 
 - `POST /auth/register`
 - `POST /auth/login`
-
-### Habit records
-
-- `POST /habit-records`
 - `GET /habit-records`
 - `GET /habit-records/:id`
+- `POST /habit-records`
 - `PUT /habit-records/:id`
 - `DELETE /habit-records/:id`
 - `GET /habit-records/stats/summary`
-- `GET /habit-records/stats/progress`
 
-### Rotas administrativas de habit records
+Para a integração funcionar:
 
-- `GET /habit-records/admin/all`
-- `DELETE /habit-records/admin/:id`
+1. Deixe este back rodando em `http://localhost:3000`
+2. Configure o front com `VITE_API_URL=http://localhost:3000`
+3. Garanta que `CORS_ORIGIN` inclua a URL do Vite, normalmente `http://localhost:5173`
 
-### Usuarios
-
-- `GET /users`
-- `GET /users/:id`
-- `PATCH /users/:id`
-- `DELETE /users/:id`
-
-Todas as rotas em `/habit-records` e `/users` exigem token JWT no header:
+O token JWT deve ser enviado no header:
 
 ```http
 Authorization: Bearer SEU_TOKEN
 ```
 
-As rotas de `/users` e as rotas administrativas de `/habit-records` exigem usuario com role `admin`.
+O front já faz isso automaticamente depois do login.
 
-## Exemplos de uso
+## Observação importante sobre a tela de admin do front
 
-### Registrar usuario
+O back atual expõe rotas administrativas em:
 
-```json
-POST /auth/register
-{
-  "email": "usuario@email.com",
-  "password": "123456"
-}
+- `GET /habit-records/admin/all`
+- `DELETE /habit-records/admin/:id`
+- `GET /users`
+- `GET /users/:id`
+- `PATCH /users/:id`
+- `DELETE /users/:id`
+
+A tela `Admin` do front, porém, está apontando para endpoints `/admin/habits`, que não existem neste back hoje. Então:
+
+- login, cadastro e fluxo de hábitos estão integráveis
+- a área de admin precisa alinhar os endpoints antes de funcionar com este back
+
+## Admin padrão
+
+Ao iniciar o back, a aplicação garante a existencia da conta administrativa padrão:
+
+```text
+email: admin@gmail.com
+senha: 123456
 ```
 
-### Fazer login
+Se esse email já existir, o sistema não cria outro usuário; ele apenas garante que a conta permaneça com papel `admin`.
 
-```json
-POST /auth/login
-{
-  "email": "usuario@email.com",
-  "password": "123456"
-}
-```
+## Scripts
 
-### Criar registro de habito
-
-```json
-POST /habit-records
-{
-  "date": "2026-04-07",
-  "waterIntakeMl": 2000,
-  "activityMinutes": 30,
-  "mood": "bem",
-  "notes": "Caminhei e bati a meta de agua"
-}
-```
+- `npm run dev`: sobe o servidor com watch
+- `npm start`: sobe o servidor normalmente
+- `npm test`: roda os testes
 
 ## Testes
 
-Os testes automatizados cobrem os fluxos principais de autenticacao, middlewares, usuarios e registros de habitos.
-
-Para executar:
+Para executar os testes automatizados:
 
 ```bash
 npm test
 ```
-
-
-joao fez quase tudo ok
